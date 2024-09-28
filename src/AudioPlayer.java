@@ -5,13 +5,13 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 
-public class PlayerAudio {
+public class AudioPlayer {
 
     private AudioFormat format;
     private SourceDataLine lineOut;
     private AudioInputStream in;
 
-    public PlayerAudio(AudioFormat format) {
+    public AudioPlayer(AudioFormat format) {
         this.format = format;
         
     }

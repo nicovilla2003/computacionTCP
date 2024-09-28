@@ -8,11 +8,13 @@ public class Servidor {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(12345);
+        ServerSocket audioSocket = new ServerSocket(12346);
         System.out.println("Servidor iniciado en el puerto 12345");
 
         while (true) {
             Socket socket = serverSocket.accept();
-            ClientHandler clientHandler = new ClientHandler(socket);
+            Socket audioSoc = audioSocket.accept();
+            ClientHandler clientHandler = new ClientHandler(socket, audioSoc);
             clients.add(clientHandler);
             new Thread(clientHandler).start();
         }
@@ -32,6 +34,13 @@ public class Servidor {
     public static synchronized void broadcast(String message, Chat chat, ClientHandler sender) {
         if (chat != null) {
             chat.broadcast(message, sender);
+        }
+    }
+
+    // Difundir audio a todos los clientes en el chat
+    public static synchronized void broadcastAudio(byte[] audioData, Chat chat, ClientHandler sender) {
+        if (chat != null) {
+            chat.broadcastAudio(audioData, sender);
         }
     }
 

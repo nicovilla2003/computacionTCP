@@ -6,13 +6,13 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
 
-public class RecordAudio implements Runnable {
+public class AudioRecorder implements Runnable {
 
     private AudioFormat format;
     private int duration;
     private ByteArrayOutputStream out;
 
-    public RecordAudio(AudioFormat format, int duration, ByteArrayOutputStream out) {
+    public AudioRecorder(AudioFormat format, int duration, ByteArrayOutputStream out) {
         this.format = format;
         this.duration = duration;
         this.out = out;
