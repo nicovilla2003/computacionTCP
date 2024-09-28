@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +27,14 @@ public class Chat {
         for (ClientHandler client : clients) {
             if (client != sender) {  // No enviamos el mensaje al remitente
                 client.sendMessage(message);
+            }
+        }
+    }
+
+    public synchronized void broadcastAudio(byte[] audioData, ClientHandler sender) {
+        for (ClientHandler client : clients) {
+            if (client != sender) {  // No enviamos el audio al remitente
+                    client.sendAudio(audioData);
             }
         }
     }

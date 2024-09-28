@@ -2,19 +2,35 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
+import javax.sound.sampled.AudioFormat;
+
 public class Cliente {
     private Socket socket;
+    private Socket audioSocket;
     private BufferedReader in;
     private PrintWriter out;
+    private DataInputStream dis;
+    private DataOutputStream dos;
     private String nickname;
     private Thread listenerThread;
+    private Thread audioListenerThread;
 
-    public Cliente(String address, int port, String nickname) {
+    private static final int SAMPLE_RATE = 16000;
+    private static final int SAMPLE_SIZE_IN_BITS = 16;
+    private static final int CHANNELS = 1;
+    private static final boolean SIGNED = true;
+    private static final boolean BIG_ENDIAN = true;
+    private static final AudioFormat format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
+
+    public Cliente(String address, int port, int audioPort, String nickname) {
         try {
             this.nickname = nickname;
             this.socket = new Socket(address, port);
+            this.audioSocket = new Socket(address, audioPort);
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.out = new PrintWriter(socket.getOutputStream(), true);
+            this.dis = new DataInputStream(audioSocket.getInputStream());
+            this.dos = new DataOutputStream(audioSocket.getOutputStream());
 
             // Enviar el nickname al servidor
             out.println(nickname);
@@ -36,6 +52,7 @@ public class Cliente {
                 
                 // Iniciar hilo para escuchar mensajes
                 iniciarListener();
+                iniciarAudioListener();
                 // Permitir que el cliente envíe mensajes
                 enviarMensajes();
 
@@ -44,6 +61,7 @@ public class Cliente {
             }else if (opcion.equals("3")){
                 out.println("/exit");
                 detenerListener();
+                detenerAudioListener();
                 break;
             }
             else{
@@ -74,8 +92,50 @@ public class Cliente {
                 out.println(message);
                 if(message.equals("/exit")){
                     break;
+                }else if(message.equals("/audio")){
+                    enviarAudio();  
                 }
             }
+        }
+    }
+
+    private void enviarAudio() {
+        int duration = 5; // seconds
+        ByteArrayOutputStream outAudio = new ByteArrayOutputStream();
+        AudioRecorder recorder = new AudioRecorder(format, duration, outAudio);
+        Thread t = new Thread(recorder);
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        byte[] audio = outAudio.toByteArray();
+        try {
+            dos.writeInt(audio.length);
+            dos.flush();
+            dos.write(audio);
+            dos.flush();
+            System.out.println("Enviando audio...");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    private void iniciarAudioListener() {
+        detenerAudioListener();
+        audioListenerThread = new Thread(new audioListener());
+        audioListenerThread.start();
+    }
+
+    // Método para detener el audio listener
+    private void detenerAudioListener() {
+        if (audioListenerThread != null && audioListenerThread.isAlive()) {
+            audioListenerThread.interrupt(); // Interrumpir el hilo de manera controlada
+            audioListenerThread = null;
         }
     }
 
@@ -96,9 +156,10 @@ public class Cliente {
 
     private class Listener implements Runnable {
         public void run() {
+            byte[] audioData;
             String serverMessage;
             try {
-                while (!Thread.currentThread().isInterrupted() && (serverMessage = in.readLine()) != null) {
+                while (!Thread.currentThread().isInterrupted() && (serverMessage = in.readLine()) != null ) {
                     System.out.println(serverMessage);
                 }
             } catch (IOException e) {
@@ -111,10 +172,39 @@ public class Cliente {
         }
     }
 
+    private class audioListener implements Runnable {
+        public void run() {
+            byte[] audioData;
+            try {
+                DataInputStream dataIn = new DataInputStream(audioSocket.getInputStream());
+                while (!Thread.currentThread().isInterrupted()) {
+                    int audioLength = dataIn.readInt();
+                
+                // Crear un buffer para el audio recibido
+                audioData = new byte[audioLength];
+                
+                // Leer el audio en el buffer
+                dataIn.readFully(audioData);  // Lee exactamente 'audioLength' bytes
+                
+                // Reproducir el audio recibido
+                AudioPlayer player = new AudioPlayer(format);
+                player.initAudio(audioData);  // Pasar los datos de audio al reproductor
+            }} catch (IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("Listener detenido.");
+                } else {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Ingresa tu nickname: ");
         String nickname = scanner.nextLine();
-        new Cliente("localhost", 12345, nickname);
+        new Cliente("localhost", 12345, 12346, nickname);
     }
 }

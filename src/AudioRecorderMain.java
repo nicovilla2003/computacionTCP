@@ -16,7 +16,7 @@ public class AudioRecorderMain {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 
-        RecordAudio recorder = new RecordAudio(format, duration, out);
+        AudioRecorder recorder = new AudioRecorder(format, duration, out);
         Thread t = new Thread(recorder);
         t.start();
         try {
@@ -26,7 +26,7 @@ public class AudioRecorderMain {
         }
 
         byte[] audio = out.toByteArray();
-        PlayerAudio player = new PlayerAudio(format);
+        AudioPlayer player = new AudioPlayer(format);
         player.initAudio(audio);
         
     }
