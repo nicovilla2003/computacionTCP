@@ -28,7 +28,7 @@ public class AudioRecorder implements Runnable {
 
             line.open(format);
             line.start();  // Iniciar captura de audio
-            System.out.println("Capturando audio..."+duration+" segundos");
+            //System.out.println("Capturando audio..."+duration+" segundos");
 
             byte[] buffer = new byte[line.getBufferSize() / 5];
             long startTime = System.currentTimeMillis();
