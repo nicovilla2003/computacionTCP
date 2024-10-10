@@ -35,7 +35,7 @@ public class AudioPlayer {
         try {
             System.out.println("Reproduciendo audio...");
             while ((bytesRead = in.read(buffer, 0, buffer.length)) != -1) {
-                System.out.println("Reproduciendo buffer..."+ bytesRead);
+                //System.out.println("Reproduciendo buffer..."+ bytesRead);
                 lineOut.write(buffer, 0, bytesRead);
             }
             lineOut.drain();

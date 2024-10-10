@@ -4,6 +4,35 @@ import java.util.Scanner;
 
 import javax.sound.sampled.AudioFormat;
 
+/*
+ * Clase Cliente:
+ * La clase Cliente es la que se corre junto al Servidor para poder comunicarse con el servidor.
+ * La clase Cliente se comunica con un Client Handler en el servidor.
+ * Es la encargada de enviar mensajes y audios al Client Handler para que respectivamente le mande los mensajes al Servidor y consecuentemente al Chat.
+ * La clase Cliente también es la encargada de recibir mensajes y audios del Client Handler.
+ * Como se puede notar también cuenta con los Streams necesarios para manejar la comunicación de mensajes y audios.
+ * Estos siendo un BufferedReader y un PrintWriter para los mensajes y un DataInputStream y un DataOutputStream para los audios.
+ * Sus nombres son in, out, dis y dos respectivamente.
+ * Se puede decir que estos Streams son el puente entre el Cliente y el Client Handler.
+ * Cuando se corre una linea como out.println("Hola"), el mensaje "Hola" es enviado al "out" del Client Handler y este lo envia al Servidor.
+ * Lo mismo con los audios, cuando se core una linea como dos.writeInt(audio.length), el tamaño del audio es enviado al "dos" del Client Handler y este lo envia al Servidor.
+ * Pero vuelvo y repito, los streams son diferentes para mensajes y audios, esto debido a que los mensajes y los audios tienen formatos diferentes.
+ * Además, tienen que estar recibiendo y enviando en tiempos diferentes, ya que los mensajes se envian y reciben en tiempo real, mientras que los audios se envian y reciben en bloques.
+ * 
+ * La clase Cliente también cuenta con un método iniciarListener() que se encarga de iniciar un hilo para escuchar mensajes del Client Handler.
+ * La clase Cliente también cuenta con un método detenerListener() que se encarga de detener el hilo que escucha mensajes del Client Handler.
+ * La clase Cliente también cuenta con un método iniciarAudioListener() que se encarga de iniciar un hilo para escuchar audios del Client Handler.
+ * La clase Cliente también cuenta con un método detenerAudioListener() que se encarga de detener el hilo que escucha audios del Client Handler.
+ * La clase Cliente también cuenta con un método enviarMensajes() que se encarga de entrar al bucle infinito de que "todo lo que escriba y envie de ahora en adelante
+ * se envia al Chat en el que estoy actualmente" a menos de que escriba /exit que provocara el corte de este bucle infinito para retornarme al menu principal.
+ * La clase Cliente también cuenta con un método enviarAudio() que se encarga de enviar un audio al Chat en el que estoy actualmente.
+ * La clase Cliente también cuenta con un método main() que se encarga de iniciar el Cliente y de pedirme mi nickname para poder conectarme al servidor.
+ * La clase Cliente también cuenta con un constructor que se encarga de iniciar los sockets y los streams necesarios para la comunicación.
+ * Este constructor también se encarga de enviar mi nickname al Client Handler para que el servidor sepa quien soy.
+ * El constructor también se encarga todo el resto del proceso, desde manejar el menu, hasta iniciar o terminar todos los hilos que se necesiten.
+ * Tambien se encarga de manejar los metodos mencionados anteriormente como iniciarListener(), detenerListener y enviarMensajes().
+ */
+
 public class Cliente {
     private Socket socket;
     private Socket audioSocket;
@@ -38,6 +67,7 @@ public class Cliente {
             Scanner scanner = new Scanner(System.in);
             String opcion;
             // Solicitar el nombre del chat
+            
             do{
                 System.out.println("Menu:");
                 System.out.println("1. Crear chat o unirse a chat");

@@ -5,6 +5,35 @@ import java.util.ArrayList;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 
+/*
+ * Clase ClientHandler:
+ * La clase ClientHandler es la encargada de manejar la comunicación entre el servidor y un cliente.
+ * A penas se corre la clase main del Cliente en Cliente.java, se crea un nuevo hilo de ClientHandler para manejar la comunicación con el cliente.
+ * Digamos que el ClientHandler es el intermediario entre el servidor y el cliente, ya que es el encargado de manejar los mensajes y audios que se envían y reciben.
+ * El ClientHandler también mantiene una referencia al chat actual del cliente, para poder enviar mensajes y audios a los demás clientes en el chat.
+ * La clase ClientHandler implementa la interfaz Runnable, lo que significa que se puede correr en un hilo separado.
+ * 
+ * El método run() es el que se encarga de manejar la comunicación con el cliente.
+ * La parte que puede llegar a ser la más confusa del metodo run() es el switch case que se encarga de manejar las opciones que el cliente envía al servidor.
+ * Este switch es compartido por decirlo asi entre el Client Handler y el Cliente, ya que el cliente puede enviar comandos especiales al Client Handler.
+ * Y el Client Handler tiene que reaccionar a estos comandos y ejecutar los metodos correspondientes en el servidor.
+ * Luego el servidor se encarga de ejecutarlos en el chat correspondiente.
+ * Cuando un Cliente escribe /exit durante la sesión de un chat por ejemplo, el Client Handler tiene que remover al cliente del chat y del servidor 
+ * y colocarlo en el menu principal. 
+ * 
+ * El método sendMessage() es el encargado de enviar mensajes al cliente.
+ * El método sendAudio() es el encargado de enviar audios al cliente.
+ * El método getAudioSocket() es el encargado de retornar el socket de audio del chat.
+ * El método getNickname() es el encargado de retornar el nickname del chat.
+ * El método manejarAudio() es el encargado de manejar la recepción de audios.
+ * Para manejar la recepción de mensajes escritos entre el cliente y el CLient Handler se utiliza un BufferedReader y un PrintWriter.
+ * Estos estan especificados con los nombres in y out.
+ * Para manejar la recepción de audios entre el cliente y el Client Handler se utiliza un DataInputStream y un DataOutputStream.
+ * Estos estan especificados con los nombres dis y dos.
+ * Podran notar que debido a que la comunicación de mensajes y audios es diferente, se utilizan diferentes Streams para manejar la comunicación.
+ * Por eso tienen que haber dos puertos diferentes, uno para mensajes y otro para audios.
+ */
+
 public class ClientHandler implements Runnable {
     private Socket socket;
     private Socket audioSocket;
@@ -14,6 +43,12 @@ public class ClientHandler implements Runnable {
     private DataOutputStream dos;
     private String nickname;
     private Chat chat; // Mantiene una referencia al chat actual del cliente
+
+    /*
+     * El formato de audio debe ser estandarisado para que todos los clientes puedan enviar y recibir audios.
+     * Por motivos de tiempo y simplicidad, se ha decidido utilizar un formato de audio que el profe nos dio.
+     * Por eso todos los audios duran 5 segundos.
+     */
 
     private static final int SAMPLE_RATE = 16000;
     private static final int SAMPLE_SIZE_IN_BITS = 16;
@@ -57,7 +92,7 @@ public class ClientHandler implements Runnable {
             out = new PrintWriter(socket.getOutputStream(), true);
             dis = new DataInputStream(audioSocket.getInputStream());
             dos = new DataOutputStream(audioSocket.getOutputStream());
-
+                //Se inicializan los streams de entrada y salida
 
 
 
@@ -66,6 +101,11 @@ public class ClientHandler implements Runnable {
             nickname = in.readLine();
             out.println("Bienvenido " + nickname + "!");
 
+            /*
+             * Para manejar la recepción de audios, se crea un nuevo hilo que se encargará de manejar los audios.
+             * Esto sucede porque mientras que yo estoy enviando mensajes debo poder a la vez estar recibiendo audios.
+             * Entonces es necesario que el cliente pueda enviar y recibir mensajes y audios al mismo tiempo.
+             */
             Thread audioThread = new Thread(new Runnable() {
                 public void run() {
                     manejarAudio();
